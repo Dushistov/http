@@ -78,6 +78,14 @@ impl Builder {
         })
     }
 
+    /// Set the port number for URI, will be part of `Authority`
+    pub fn port(self, port: u16) -> Self {
+        self.map(move |mut parts| {
+            parts.port = Some(port);
+            Ok(parts)
+        })
+    }
+
     /// Set the `PathAndQuery` for this URI.
     ///
     /// # Examples

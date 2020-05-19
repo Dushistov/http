@@ -517,3 +517,24 @@ fn test_partial_eq_path_with_terminating_questionmark() {
 
     assert_eq!(uri, a);
 }
+
+#[test]
+fn test_uri_builder() {
+    assert_eq!(
+        "ws://localhost:8000/demo/",
+        Uri::builder()
+            .scheme("ws")
+            .authority("localhost")
+            .port(8000)
+            .path_and_query("/demo/")
+            .build()
+            .unwrap()
+    );
+    Uri::builder()
+        .scheme("ws")
+        .authority("localhost:8000")
+        .port(8000)
+        .path_and_query("/demo/")
+        .build()
+        .unwrap_err();
+}

@@ -30,7 +30,7 @@ use bytes::Bytes;
 use std::error::Error;
 use std::hash::{Hash, Hasher};
 use std::str::{self, FromStr};
-use std::{fmt, u16, u8};
+use std::{fmt, fmt::Write, u16, u8};
 
 use self::scheme::Scheme2;
 
@@ -109,6 +109,9 @@ pub struct Parts {
 
     /// The authority component of a URI
     pub authority: Option<Authority>,
+
+    /// The port component of a URI
+    pub port: Option<u16>,
 
     /// The origin-form component of a URI
     pub path_and_query: Option<PathAndQuery>,
@@ -227,6 +230,21 @@ impl Uri {
         let authority = match src.authority {
             Some(authority) => authority,
             None => Authority::empty(),
+        };
+
+        let authority = match src.port {
+            Some(port) => {
+                if authority.port_u16().is_some() {
+                    return Err(ErrorKind::InvalidFormat.into());
+                }
+                let authority = authority.as_str();
+                let mut s = String::with_capacity(authority.len() + 6);
+                s.push_str(authority);
+                write!(&mut s, ":{}", port).expect("not enough memory");
+                let data: ByteStr = s.into();
+                Authority { data }
+            }
+            None => authority,
         };
 
         let path_and_query = match src.path_and_query {
@@ -785,6 +803,7 @@ impl From<Uri> for Parts {
         Parts {
             scheme: scheme,
             authority: authority,
+            port: None,
             path_and_query: path_and_query,
             _priv: (),
         }
